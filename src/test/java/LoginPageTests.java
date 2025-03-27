@@ -29,16 +29,16 @@ public class LoginPageTests {
 //    }
 
     @Test
-    public void loginWithIncorrectPassword() {
-        loginPage.attemptLogin("*****", "****");
-        assertEquals("", loginPage.getErrorMessageText());
+    public void loginWithEmptyPassword() {
+        loginPage.attemptLogin("*****", "");
+        assertEquals("Enter password", loginPage.getErrorMessageText());
         assertFalse(mainPage.isUserLoggedIn());
     }
 
     @Test
     public void loginWithEmptyFields() {
         loginPage.attemptLogin("", "");
-        assertEquals("Mobile phone or e-mail address", loginPage.getErrorMessageText());
+        assertEquals("Enter your username", loginPage.getErrorMessageText());
         assertFalse(mainPage.isUserLoggedIn());
     }
 
