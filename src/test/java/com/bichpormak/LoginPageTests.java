@@ -82,6 +82,7 @@ public class LoginPageTests extends BaseTest {
 
         @ParameterizedTest
         @CsvSource({"technopol60,technopolisPassword", "technopol61,technopolisPassword"})
+        @Timeout(30)
         @Tag("RedirectPage")
         @DisplayName("Successful redirect")
         public void testSuccessfulLogin(String username, String password) {
@@ -99,13 +100,14 @@ public class LoginPageTests extends BaseTest {
 
         @Test
         @Tag("RedirectPage")
+        @Timeout(10)
         @DisplayName("Failed redirect")
         public void testFailedLogin() {
 
             LoginPage loginPage = new LoginPage();
             LoginPage errorPage = assertDoesNotThrow(
                     () -> RedirectHandler.expectRemainOnLoginPageWithError(loginPage, "*****", "****"),
-                    () -> "Exception thrown during login redirect"
+                    () -> "Exception thrown during login redirect, because: captcha"
             );
 
             assertDoesNotThrow(

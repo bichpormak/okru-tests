@@ -7,7 +7,6 @@ import org.junit.jupiter.api.DisplayName;
 
 import static com.codeborne.selenide.Selenide.open;
 
-
 @DisplayName("General class for everyone")
 public abstract class BaseTest {
 
