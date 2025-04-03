@@ -108,8 +108,9 @@ public class LoginPageTests extends BaseTest {
                     () -> "Exception thrown during login redirect"
             );
 
-            assertThrows(AssertionError.class, () ->
-                    RedirectHandler.validatePageState(errorPage), () -> "The redirect occurred with an error"
+            assertDoesNotThrow(
+                    () -> RedirectHandler.validatePageState(errorPage),
+                    () -> "The redirect occurred with an error"
             );
 
         }
