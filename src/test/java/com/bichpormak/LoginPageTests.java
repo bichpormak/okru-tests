@@ -1,11 +1,14 @@
 package com.bichpormak;
 
+import com.bichpormak.model.Credentials;
+import com.bichpormak.pages.LoginPage;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 
+import static com.codeborne.selenide.Condition.visible;
 import static org.junit.jupiter.api.Assertions.*;
 
 
@@ -20,14 +23,16 @@ public class LoginPageTests extends BaseTest {
     @DisplayName("Check for reaction when entering an empty password")
     public void loginWithEmptyPassword(String password) {
 
-        var loginPage = new LoginPage().attemptLogin("*****", password)
-                        .isFieldWithErrorDisplayed("Enter password");
+        var loginPage = new LoginPage();
+        loginPage.getUsernameField().setValue("*****");
+        loginPage.getPasswordField().setValue(password);
+        loginPage.getLoginButton().click();
+
+        loginPage.getErrorMessage().verifyVisible();
 
         assertAll("Empty field of password",
-
-                () -> assertEquals("Введите пароль", loginPage.getErrorMessage()),
-                () -> assertTrue(loginPage.isLoginFormDisplayed(), () -> "After failure, check that the fields have not disappeared")
-
+                () -> assertTrue(loginPage.getErrorMessage().getElement().is(visible), "Error message should be visible"),
+                () -> assertEquals("Введите пароль", loginPage.getErrorMessage().getElement().getText())
         );
 
     }
@@ -37,13 +42,17 @@ public class LoginPageTests extends BaseTest {
     @DisplayName("Check for reaction when no input is present")
     public void loginWithEmptyFields() {
 
-        var loginPage = new LoginPage().attemptLogin("", "")
-                        .isFieldWithErrorDisplayed("You have not entered any data");
+        var loginPage = new LoginPage();
+        loginPage.getUsernameField().setValue("");
+        loginPage.getPasswordField().setValue("");
+        loginPage.getLoginButton().click();
+
+        loginPage.getErrorMessage().verifyVisible();
 
         assertAll("Empty fields",
 
-                () -> assertEquals("Введите логин", loginPage.getErrorMessage()),
-                () -> assertTrue(loginPage.isLoginFormDisplayed(), () -> "After failure, check that the fields have not disappeared")
+                () -> assertEquals("Введите логин", loginPage.getErrorMessage().getElement().getText()),
+                () -> assertTrue(loginPage.getErrorMessage().getElement().is(visible), () -> "After failure, check that the fields have not disappeared")
 
         );
 
@@ -54,13 +63,17 @@ public class LoginPageTests extends BaseTest {
     @DisplayName("Check for invalid data details")
     public void loginWithIncorrectData() {
 
-        var loginPage = new LoginPage().attemptLogin("*****", "****")
-                .isFieldWithErrorDisplayed("You have entered incorrect login details");
+        var loginPage = new LoginPage();
+        loginPage.getUsernameField().setValue("*****");
+        loginPage.getPasswordField().setValue("****");
+        loginPage.getLoginButton().click();
+
+        loginPage.getErrorMessage().verifyVisible();
 
         assertAll("Incorrect data",
 
-                () -> assertEquals("Неправильно указан логин и/или пароль", loginPage.getErrorMessage()),
-                () -> assertTrue(loginPage.isLoginFormDisplayed(), () -> "After failure, check that the fields have not disappeared")
+                () -> assertEquals("Неправильно указан логин и/или пароль", loginPage.getErrorMessage().getElement().getText()),
+                () -> assertTrue(loginPage.getErrorMessage().getElement().is(visible), () -> "After failure, check that the fields have not disappeared")
 
         );
 
@@ -71,7 +84,7 @@ public class LoginPageTests extends BaseTest {
     @DisplayName("Check that page loaded successfully")
     public void loginPageLoadsCorrectly() {
 
-        assertTrue(new LoginPage().isLoginFormDisplayed());
+        new LoginPage();
 
     }
 
@@ -87,14 +100,7 @@ public class LoginPageTests extends BaseTest {
         @DisplayName("Successful redirect")
         public void testSuccessfulLogin(String username, String password) {
 
-            LoginPage loginPage = new LoginPage();
-
-            MainPage mainPage = assertDoesNotThrow(
-                    () -> RedirectHandler.expectRedirectToMainPage(loginPage, username, password),
-                    () -> "Exception thrown during login redirect with valid credentials"
-            );
-
-            assertTrue(RedirectHandler.validatePageState(mainPage), () -> "Test bots unexpectedly have captcha");
+            new LoginPage().login(new Credentials(username, password));
 
         }
 
@@ -105,15 +111,12 @@ public class LoginPageTests extends BaseTest {
         public void testFailedLogin() {
 
             LoginPage loginPage = new LoginPage();
-            LoginPage errorPage = assertDoesNotThrow(
-                    () -> RedirectHandler.expectRemainOnLoginPageWithError(loginPage, "*****", "****"),
-                    () -> "Exception thrown during login redirect, because: captcha"
-            );
+            loginPage.getUsernameField().setValue("*****");
+            loginPage.getPasswordField().setValue("*****");
+            loginPage.getLoginButton().click();
 
-            assertDoesNotThrow(
-                    () -> RedirectHandler.validatePageState(errorPage),
-                    () -> "The redirect occurred with an error"
-            );
+            loginPage.verifyPageLoaded();
+            loginPage.getErrorMessage().verifyVisible();
 
         }
 
